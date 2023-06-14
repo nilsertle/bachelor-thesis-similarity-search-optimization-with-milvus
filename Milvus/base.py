@@ -1,6 +1,6 @@
 from typing import Any
 from pymilvus import SearchFuture, SearchResult, connections, FieldSchema, CollectionSchema, DataType, Collection, utility
-from towhee.dc2 import pipe, ops, DataCollection
+from towhee import pipe, ops, DataCollection
 from datasets import load_dataset
 from datasets import Image as DatasetImage
 from PIL import Image
@@ -40,7 +40,7 @@ class MilvusHandler:
 
         
     def create_milvus_collection(self):
-        if utility.has_collection(self.collection_name) and self.drop_collection:
+        if utility.has_collection(self.collection_name) or self.drop_collection:
             print(f'Collection {self.collection_name} already exists. Dropping it...')
             utility.drop_collection(self.collection_name)
 

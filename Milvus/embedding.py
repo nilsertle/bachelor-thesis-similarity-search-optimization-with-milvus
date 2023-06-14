@@ -1,6 +1,6 @@
 from functools import lru_cache
 from datasets import load_dataset
-from towhee.dc2 import pipe, ops, DataCollection
+from towhee import pipe, ops, DataCollection
 import pickle
 import os
 
