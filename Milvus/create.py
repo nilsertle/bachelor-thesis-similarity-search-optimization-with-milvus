@@ -27,7 +27,15 @@ def test_recall(embedding_handler: EmbeddingHandler):
         plt.text(x, y, f"{y:.2f}")
     plt.xlabel('nlist / nprobe')
     plt.ylabel('recall rate')
+    plt.savefig(f"plots/recall_rate_vs_nlist_nprobe-pairs.png")
     plt.show()
+
+    with open('plotdata/recall_rate_vs_nlist_nprobe-pairs.txt', 'w') as f:
+        # write x in a list and y in a list to file
+        f.write("x-values:\n")
+        f.write(f"{list(recall_list_dict.keys())}\n")
+        f.write("y-values:\n")
+        f.write(f"{list(recall_list_dict.values())}\n")
 
     ''' PLOT: recall rate vs nq for different nlist/nprobe-pairs '''
     # nq_list = [1, 3]
@@ -44,6 +52,7 @@ def test_recall(embedding_handler: EmbeddingHandler):
     # plt.xlabel('nq')
     # plt.ylabel('recall rate')
     # plt.legend()
+    # plt.savefig(f"plots/recall_rate_vs_nq.png")
     # plt.show()
 
 
@@ -60,8 +69,6 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
     tpq_topk_list_dict: dict[str, dict[str, list[float]]] = {}
     nq_list = [1,3]
     topk_list = [1,2]
-
-    # TODO: dont overwrite but add nlist/nprobe pair to dict (HOW?)
     
     for nlist, nprobe in zip(nlist_list, nprobe_list):
         tpq_list = []
@@ -108,6 +115,7 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
     plt.ylabel('tpq / s')
     plt.title(f'TPQ vs nq for {index_type}')
     plt.legend()
+    plt.savefig(f"plots/tpq_vs_nq-{index_type}.png")
     plt.show()
 
     ''' PLOT: average distance vs input vector count '''
@@ -118,6 +126,7 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
     plt.ylabel('avg distance')
     plt.title(f'avg distance vs nq for {index_type}')
     plt.legend()
+    plt.savefig(f"plots/avg_distance_vs_nq-{index_type}.png")
     plt.show()
 
     ''' PLOT: time per query vs topk for different nlist / nprobe (each nq a new plot)'''
@@ -139,4 +148,5 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
         axs[i].set(xlabel='topk', ylabel='tpq / s')
         axs[i].set_title(f'TPQ vs topk for {index_type} with nq: {nq} input vectors')
         axs[i].legend()
+    plt.savefig(f"plots/tpq_vs_topk-{index_type}.png")
     plt.show()
