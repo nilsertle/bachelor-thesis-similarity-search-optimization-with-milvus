@@ -12,22 +12,35 @@ INDEX_TYPES = ["IVF_FLAT"]
 
 def test_recall(embedding_handler: EmbeddingHandler):
     ''' PLOT: recall rate vs nlist/nprobe-pairs '''
-    recall_list_dict = {}
-    nlist_list = [128, 256, 512, 8192, 16384]
-    nprobe_list = [4, 8, 16, 256, 512]
-    assert len(nlist_list) == len(nprobe_list)
-    for nlist, nprobe in zip(nlist_list, nprobe_list):
-        client = MilvusHandler(embedding_handler=embedding_handler, index_type="IVF_FLAT", drop_collection=True, nlist=nlist, nprobe=nprobe)
-        client.insert_data()
-        recall_rate = client.test_recall_rate()
-        recall_list_dict[f"{nlist} / {nprobe}"] = recall_rate
+    INDEX_TYPES_RECALL = ["FLAT", "IVF_FLAT", "IVF_SQ8", "IVF_PQ", "HNSW", "ANNOY"]
+    fig, axs = plt.subplots(nrows=2, ncols=3, figsize= (20, 8), squeeze=False)
+    fig.subplots_adjust(wspace=0.2)
+    
+    axs_row_index = 0
+    axs_col_index = 0
+    for i, index_type in enumerate(INDEX_TYPES_RECALL):
+        recall_list_dict = {}
+        nlist_list = [128, 512]
+        nprobe_list = [4, 16]
+        assert len(nlist_list) == len(nprobe_list)
+        for nlist, nprobe in zip(nlist_list, nprobe_list):
+            client = MilvusHandler(embedding_handler=embedding_handler, index_type=index_type, drop_collection=True, nlist=nlist, nprobe=nprobe)
+            client.insert_data()
+            recall_rate = client.test_recall_rate()
+            recall_list_dict[f"{nlist} / {nprobe}"] = recall_rate
 
-    plt.plot(recall_list_dict.keys(), recall_list_dict.values(), marker='o')
-    for x, y in zip(recall_list_dict.keys(), recall_list_dict.values()):
-        plt.text(x, y, f"{y:.2f}")
-    plt.xlabel('nlist / nprobe')
-    plt.ylabel('recall rate')
+        if axs_row_index == 2:
+            axs_row_index = 0
+            axs_col_index += 1
+        axs[axs_row_index,axs_col_index].plot(recall_list_dict.keys(), recall_list_dict.values(), label=f"{i}", marker='o')
+        for x, y in zip(recall_list_dict.keys(), recall_list_dict.values()):
+            axs[axs_row_index, axs_col_index].text(x, y, f"{y:.2f}")
+        axs[axs_row_index, axs_col_index].set(xlabel='nlist / nprobe', ylabel='recall rate')
+        axs[axs_row_index, axs_col_index].set_title(f"index_type: {index_type}")
+        axs_row_index += 1
+    
     plt.show()
+
 
     ''' PLOT: recall rate vs nq for different nlist/nprobe-pairs '''
     # nq_list = [1, 3]
