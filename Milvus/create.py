@@ -80,11 +80,11 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
 
     tpq_list_dict = {}
     avg_distances_dict = {}
-    nlist_list = [1024]
-    nprobe_list = [32]
+    nlist_list = [128, 256, 512, 1024, 2048, 4096, 8192, 16384]
+    nprobe_list = [4, 8, 16, 32, 64, 128, 256, 512]
     tpq_topk_list_dict: dict[str, dict[str, list[float]]] = {}
-    nq_list = [1,3]
-    topk_list = [1,2]
+    nq_list = [1, 5, 10, 20, 50, 100]
+    topk_list = [1, 5, 10, 20, 50, 100]
     
     for nlist, nprobe in zip(nlist_list, nprobe_list):
         tpq_list = []
@@ -126,24 +126,45 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
     ''' PLOT: time per query vs input vector count '''
     for nlist, nprobe in zip(nlist_list, nprobe_list):
         tpq_list = tpq_list_dict[f"{nlist} / {nprobe}"]
-        plt.plot(nq_list, tpq_list, label=f"{nlist} / {nprobe}")
+        plt.plot(nq_list, tpq_list, label=f"{nlist} / {nprobe}", marker='o')
+        for x, y in zip(nq_list, tpq_list):
+            plt.text(x, y, f"{y:.2f}")
     plt.xlabel('nq')
     plt.ylabel('tpq / s')
     plt.title(f'TPQ vs nq for {index_type}')
     plt.legend()
     plt.savefig(f"plots/tpq_vs_nq-{index_type}.png")
     plt.show()
+    # save data to plotdata file
+    with open(f"plotdata/efficiency/tpq_vs_nq-{index_type}.txt", "w") as f:
+        for nlist, nprobe in zip(nlist_list, nprobe_list):
+            # write each plots x and y in an array
+            tpq_list = tpq_list_dict[f"{nlist} / {nprobe}"]
+            f.write(f"{nlist} / {nprobe}\n")
+            f.write(f"{nq_list}\n")
+            f.write(f"{tpq_list}\n")
+
 
     ''' PLOT: average distance vs input vector count '''
     for nlist, nprobe in zip(nlist_list, nprobe_list):
         avg_distances_list = avg_distances_dict[f"{nlist} / {nprobe}"]
-        plt.plot(nq_list, avg_distances_list, label=f"{nlist} / {nprobe}")
+        plt.plot(nq_list, avg_distances_list, label=f"{nlist} / {nprobe}", marker='o')
+        for x, y in zip(nq_list, avg_distances_list):
+            plt.text(x, y, f"{y:.2f}")
     plt.xlabel('nq')
     plt.ylabel('avg distance')
     plt.title(f'avg distance vs nq for {index_type}')
     plt.legend()
     plt.savefig(f"plots/avg_distance_vs_nq-{index_type}.png")
     plt.show()
+    # save data to plotdata file
+    with open(f"plotdata/efficiency/avg_distance_vs_nq-{index_type}.txt", "w") as f:
+        for nlist, nprobe in zip(nlist_list, nprobe_list):
+            # write each plots x and y in an array
+            avg_distances_list = avg_distances_dict[f"{nlist} / {nprobe}"]
+            f.write(f"{nlist} / {nprobe}\n")
+            f.write(f"{nq_list}\n")
+            f.write(f"{avg_distances_list}\n")
 
     ''' PLOT: time per query vs topk for different nlist / nprobe (each nq a new plot)'''
     fig, axs = plt.subplots(nrows=1, ncols=len(nq_list), figsize= (20, 8))
@@ -166,3 +187,12 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
         axs[i].legend()
     plt.savefig(f"plots/tpq_vs_topk-{index_type}.png")
     plt.show()
+    # save data to plotdata file
+    with open(f"plotdata/efficiency/tpq_vs_topk-{index_type}.txt", "w") as f:
+        for i, nq in enumerate(nq_list):
+            for nlist, nprobe in zip(nlist_list, nprobe_list):
+                tpq_topk_list = tpq_topk_list_dict[f"nq={nq}"]
+                tpq_list = tpq_topk_list[f"{nlist} / {nprobe}"]
+                f.write(f"{nlist} / {nprobe}\n")
+                f.write(f"{topk_list}\n")
+                f.write(f"{tpq_list}\n")

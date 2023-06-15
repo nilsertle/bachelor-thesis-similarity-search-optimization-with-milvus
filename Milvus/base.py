@@ -101,12 +101,30 @@ class MilvusHandler:
         print('========== Inserting data... ==========')
         if len(self.embeddings) <= 0:
             raise ValueError('No embeddings to insert')
-        data = [
-            [i for i in range(len(self.embeddings))],
-            self.embeddings,
-        ]
-        mr = self.collection.insert(data)
-        self.mr = mr
+        print("hereherherherehrhre")
+        print(len(self.embeddings))
+        print(self.embeddings[0])
+        print("hereherherherehrhre")
+        # insert in batches
+        batch_size = 5000
+        for i in range(0, len(self.embeddings), batch_size):
+            data = [
+                [i for i in range(i, i+batch_size)],
+                self.embeddings[i:i+batch_size],
+            ]
+            mr = self.collection.insert(data)
+            print("mr: ", mr)
+
+        # data = [ 
+        #     [i for i in range(len(self.embeddings))],
+        #     self.embeddings,
+        # ]
+        # mr = self.collection.insert(data)
+        # print("mr: ", mr)
+        # self.mr = mr
+        
+        # print the collection entries count
+        print(f'Collection {self.collection_name} has {self.collection.num_entities} entries')
 
     def search_data(self, data: list[list[float]], topk=None, offset=None, metric_type=None, nprobe=None, load_collection=False):
         if len(data) <= 0:
@@ -162,7 +180,9 @@ class MilvusHandler:
         test_search_results = []
         print(f'========== Searching data... {self.nlist} / {nprobe} ==========')
         start_time = time.time()
-        for te in self.test_embeddings:
+        for i, te in enumerate(self.test_embeddings):
+            if i in [10, 100, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 9999]:
+                print(f'========== Searching data... {i} ==========')
             test_search_result = self.search_data([te for x in range(nq)])
             test_search_results.append(test_search_result)
         end_time = time.time()
@@ -182,7 +202,7 @@ class MilvusHandler:
                 avg_distance /= len(results[0][0].distances)
                 avg_distances.append(avg_distance)
             except:
-                print("Error in average calculus: ", results)
+                # print("Error in average calculus: ", results)
                 avg_distances.append(0)
         avg_distance = sum(avg_distances) / len(avg_distances)
 

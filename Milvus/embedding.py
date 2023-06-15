@@ -24,6 +24,7 @@ class EmbeddingHandler():
         self.test_embeddings = None
         self.model = 'resnet50'
         self.dim = 2048
+        self.embedding_model = ops.image_embedding.timm(model_name=self.model, device=None)
 
         self.create_embeddings()
         self.create_test_embeddings()
@@ -33,22 +34,25 @@ class EmbeddingHandler():
         ''' 
         If no image is provided, use the first image in the dataset (for search_data) 
         '''
-        embedding_model = ops.image_embedding.timm(model_name=self.model, device=None)
-        embedding = embedding_model(image)
+        
+        embedding = self.embedding_model(image)
         assert len(embedding) == self.dim
         return embedding
     
     def create_embeddings(self):
         print('========== Creating embeddings... ==========')
         try:
+            print(self.embeddings_cache_file)
+            print(os.path.isfile(self.embeddings_cache_file))
             with open(self.embeddings_cache_file, 'rb') as f:
                 cached_array = pickle.load(f)
                 self.embeddings = cached_array
             print('========== Loaded embeddings from cache file... ==========')
-        except:
+        except Exception as e:
+            print("exception: ", e)
             embeddings = []
             for i, img in enumerate(self.dataset):
-                if i in [100, 1000, 5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 99999]:
+                if i in [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 99999]:
                     print(f"{i} embeddings created")
                 embedding = self.create_embedding(img["image"])
                 embeddings.append(embedding)
