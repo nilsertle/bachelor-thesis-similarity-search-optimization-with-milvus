@@ -61,11 +61,35 @@ class MilvusHandler:
             schema = CollectionSchema(fields=fields, description='reverse image search')
             self.collection = Collection(name=self.collection_name, schema=schema)
 
-            index_params = {
-                'metric_type': self.metric_type,
-                'index_type': self.index_type,
-                'params': {"nlist": self.nlist},
-            }
+            # switch statement (self.index_type)
+
+            if self.index_type in ["IVF_FLAT", "IVF_SQ8", "FLAT"]:
+                index_params = {
+                    'metric_type': self.metric_type,
+                    'index_type': self.index_type,
+                    'params': {"nlist": self.nlist},
+                }
+            elif self.index_type in ["IVF_PQ"]:
+                index_params = {
+                    'metric_type': self.metric_type,
+                    'index_type': self.index_type,
+                    'params': {"nlist": self.nlist, "m": 16, "nbits": 8},
+                }
+            elif self.index_type in ["HNSW"]:
+                index_params = {
+                    'metric_type': self.metric_type,
+                    'index_type': self.index_type,
+                    'params': {"M": 16, "efConstruction": 500},
+                }
+            elif self.index_type in ["ANNOY"]:
+                index_params = {
+                    'metric_type': self.metric_type,
+                    'index_type': self.index_type,
+                    'params': {"n_trees": 8},
+                }
+            else:
+                raise ValueError(f'Index type {self.index_type} not supported')
+
             self.collection.create_index(field_name='embedding', index_params=index_params)
             return self.collection
         
@@ -180,7 +204,7 @@ class MilvusHandler:
         self.collection.load()
 
         # count should be len of images per category (500)
-        count = 100
+        count = 500
 
         print(f'========== Searching data... {self.nlist} / {self.nprobe} ==========')
         test_search_results: list[tuple[SearchResult, Any | list]] = []

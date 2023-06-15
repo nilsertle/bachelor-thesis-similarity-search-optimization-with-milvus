@@ -48,6 +48,8 @@ class EmbeddingHandler():
         except:
             embeddings = []
             for i, img in enumerate(self.dataset):
+                if i in [100, 1000, 5000, 10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 99999]:
+                    print(f"{i} embeddings created")
                 embedding = self.create_embedding(img["image"])
                 embeddings.append(embedding)
             self.embeddings = embeddings
