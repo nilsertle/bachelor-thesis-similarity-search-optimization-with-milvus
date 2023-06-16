@@ -3,6 +3,7 @@ from Base.base import MilvusHandler
 from Base.embedding import EmbeddingHandler
 import os
 import matplotlib.pyplot as plt
+import time 
 
 '''
 Test different Indexing Algorithms for different input vector counts
@@ -11,46 +12,31 @@ Test different Indexing Algorithms for different input vector counts
 INDEX_TYPES = ["IVF_FLAT"]
 INDEX_TYPE = "IVF_FLAT"
 
-def test_recall(embedding_handler: EmbeddingHandler):
+def test_recall(embedding_handler: EmbeddingHandler, index_type=INDEX_TYPE):
     ''' PLOT: recall rate vs nlist/nprobe-pairs '''
-    INDEX_TYPES_RECALL = ["FLAT", "IVF_FLAT", "IVF_SQ8", "IVF_PQ", "HNSW", "ANNOY"]
-    fig, axs = plt.subplots(nrows=2, ncols=3, figsize= (20, 8), squeeze=False)
-    fig.subplots_adjust(wspace=0.2)
-    fig.subplots_adjust(hspace=0.4)
+    recall_list_dict = {}
+    nlist_list = [128, 256, 512, 1024, 2048, 4096, 8192, 16384]
+    nprobe_list = [4, 8, 16, 32, 64, 128, 256, 512]
+    assert len(nlist_list) == len(nprobe_list)
+    for nlist, nprobe in zip(nlist_list, nprobe_list):
+        client = MilvusHandler(embedding_handler=embedding_handler, index_type=index_type, drop_collection=True, nlist=nlist, nprobe=nprobe)
+        client.insert_data()
+        recall_rate = client.test_recall_rate()
+        recall_list_dict[f"{nlist} / {nprobe}"] = recall_rate
+
+    plt.plot(recall_list_dict.keys(), recall_list_dict.values(), label=f"{index_type}")
+    plt.legend()
+    plt.xlabel("nlist / nprobe")
+    plt.ylabel("recall rate")
+    plt.title(f"recall rate vs nlist/nprobe-pairs")
+    plt.savefig(f"plots/recall_rate_vs_nlist_nprobe-{index_type}.png")
     
-    axs_row_index = 0
-    axs_col_index = 0
-    for i, index_type in enumerate(INDEX_TYPES_RECALL):
-        recall_list_dict = {}
-        nlist_list = [128, 256, 512, 1024, 2048, 4096, 8192, 16384]
-        nprobe_list = [4, 8, 16, 32, 64, 128, 256, 512]
-        assert len(nlist_list) == len(nprobe_list)
-        for nlist, nprobe in zip(nlist_list, nprobe_list):
-            client = MilvusHandler(embedding_handler=embedding_handler, index_type=index_type, drop_collection=True, nlist=nlist, nprobe=nprobe)
-            client.insert_data()
-            recall_rate = client.test_recall_rate()
-            recall_list_dict[f"{nlist} / {nprobe}"] = recall_rate
-
-        if axs_row_index == 2:
-            axs_row_index = 0
-            axs_col_index += 1
-        axs[axs_row_index,axs_col_index].plot(recall_list_dict.keys(), recall_list_dict.values(), label=f"{i}", marker='o')
-        for x, y in zip(recall_list_dict.keys(), recall_list_dict.values()):
-            axs[axs_row_index, axs_col_index].text(x, y, f"{y:.2f}")
-
-        with open(f"plotdata/test_recall/recall_rate_vs_nlist_nprobe-{index_type}.txt", "w") as f:
-            # save key and value to file as an array each
-            f.write("x-values\n")
-            f.write(f"{list(recall_list_dict.keys())}\n")
-            f.write("y-values\n")
-            f.write(f"{list(recall_list_dict.values())}\n")
-
-        axs[axs_row_index, axs_col_index].set(xlabel='nlist / nprobe', ylabel='recall rate')
-        axs[axs_row_index, axs_col_index].set_title(f"index_type: {index_type}")
-        axs_row_index += 1
-    
-    plt.savefig(f"plots/recall_rate_vs_nlist_nprobe-pairs.png")
-    plt.show()
+    with open(f"plotdata/test_recall/recall_rate_vs_nlist_nprobe-{index_type}.txt", "w") as f:
+        # save key and value to file as an array each
+        f.write("x-values\n")
+        f.write(f"{list(recall_list_dict.keys())}\n")
+        f.write("y-values\n")
+        f.write(f"{list(recall_list_dict.values())}\n")
 
 
     ''' PLOT: recall rate vs nq for different nlist/nprobe-pairs '''
@@ -90,17 +76,22 @@ def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
         tpq_list = []
         avg_distances_list = []
         
+        start_time_outer = time.time()
         drop_collection = True
         for nq in nq_list:
             client = MilvusHandler(embedding_handler=embedding_handler, index_type=index_type, topk=10, drop_collection=drop_collection, nlist=nlist, nprobe=nprobe)
             if drop_collection:
                 client.insert_data()
 
+            start_time = time.time()
             qps, tpq, avg_distances = client.test_search(nq=nq)
+            end_time = time.time()
             print("=====================================")
             print(f"nq: {nq}")
             print(f"{index_type} QPS: {qps}")
             print(f"{index_type} TPQ in ms: {tpq*1000}")
+            # how much time did the test take
+            print(f"Time: {end_time - start_time} seconds")
             print("=====================================")
             drop_collection = False
             tpq_list.append(tpq)
@@ -118,6 +109,9 @@ def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
 
         tpq_list_dict[f"{nlist} / {nprobe}"] = tpq_list
         avg_distances_dict[f"{nlist} / {nprobe}"] = avg_distances_list
+
+        end_time_outer = time.time()
+        print(f"Total time: {end_time_outer - start_time_outer} seconds")
 
     ''' test ram usage '''
     client = MilvusHandler(embedding_handler=embedding_handler, index_type=index_type, topk=10, drop_collection=False)
