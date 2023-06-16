@@ -192,23 +192,9 @@ class MilvusHandler:
         queries_per_second = (len(self.test_embeddings)) / (end_time - start_time)
         time_per_query = (end_time - start_time) / (len(self.test_embeddings))
 
-        ''' Calculate average distance '''
-        avg_distances = []
-        for results in test_search_results:
-            try: 
-                avg_distance = 0
-                for dist in results[0][0].distances:
-                    avg_distance += dist
-                avg_distance /= len(results[0][0].distances)
-                avg_distances.append(avg_distance)
-            except:
-                # print("Error in average calculus: ", results)
-                avg_distances.append(0)
-        avg_distance = sum(avg_distances) / len(avg_distances)
-
         self.collection.release()
 
-        return queries_per_second, time_per_query, avg_distance
+        return queries_per_second, time_per_query
 
     def test_ram_usage(self):
         self.collection.load()

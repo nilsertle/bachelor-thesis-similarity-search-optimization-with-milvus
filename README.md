@@ -18,3 +18,6 @@ Train Embeddings:
 `gdown https://drive.google.com/uc?id=1-3llBB2jbYw_UsNc-0bQJnGqKyr42eHv`
 Test embeddings:
 `gdown https://drive.google.com/uc?id=1uFepIBTFQsGLl2ypuKRO7Ma4u0zrWULV`
+
+# Check available memory
+`df -hT`

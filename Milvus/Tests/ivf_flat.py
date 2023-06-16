@@ -15,8 +15,8 @@ INDEX_TYPE = "IVF_FLAT"
 def test_recall(embedding_handler: EmbeddingHandler, index_type=INDEX_TYPE):
     ''' PLOT: recall rate vs nlist/nprobe-pairs '''
     recall_list_dict = {}
-    nlist_list = [128, 256, 512, 1024, 2048, 4096, 8192, 16384]
-    nprobe_list = [4, 8, 16, 32, 64, 128, 256, 512]
+    nlist_list = [256, 1024, 4096, 16384]
+    nprobe_list = [8, 32, 128, 512]
     assert len(nlist_list) == len(nprobe_list)
     for nlist, nprobe in zip(nlist_list, nprobe_list):
         client = MilvusHandler(embedding_handler=embedding_handler, index_type=index_type, drop_collection=True, nlist=nlist, nprobe=nprobe)
@@ -65,17 +65,15 @@ def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
     ''' nq is the number of input vectors '''
 
     tpq_list_dict = {}
-    avg_distances_dict = {}
-    nlist_list = [128, 256, 512, 1024, 2048, 4096, 8192, 16384]
-    nprobe_list = [4, 8, 16, 32, 64, 128, 256, 512]
+    nlist_list = [256, 1024, 4096, 16384]
+    nprobe_list = [8, 32, 128, 512]
     tpq_topk_list_dict: dict[str, dict[str, list[float]]] = {}
-    nq_list = [1, 5, 10, 20, 50, 100]
+    nq_list = [1, 10, 100, 300, 500, 700, 900]
     topk_list = [1, 5, 10, 20, 50, 100]
     
     for nlist, nprobe in zip(nlist_list, nprobe_list):
         tpq_list = []
-        avg_distances_list = []
-        
+
         start_time_outer = time.time()
         drop_collection = True
         for nq in nq_list:
@@ -84,7 +82,7 @@ def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
                 client.insert_data()
 
             start_time = time.time()
-            qps, tpq, avg_distances = client.test_search(nq=nq)
+            qps, tpq = client.test_search(nq=nq)
             end_time = time.time()
             print("=====================================")
             print(f"nq: {nq}")
@@ -95,7 +93,6 @@ def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
             print("=====================================")
             drop_collection = False
             tpq_list.append(tpq)
-            avg_distances_list.append(avg_distances)
 
             ''' test different topk's '''
             # little_list = []
@@ -108,7 +105,6 @@ def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
             # tpq_topk_list_dict[f"nq={nq}"][f"{nlist} / {nprobe}"] = little_list
 
         tpq_list_dict[f"{nlist} / {nprobe}"] = tpq_list
-        avg_distances_dict[f"{nlist} / {nprobe}"] = avg_distances_list
 
         end_time_outer = time.time()
         print(f"Total time: {end_time_outer - start_time_outer} seconds")
@@ -137,28 +133,6 @@ def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
             f.write(f"{nlist} / {nprobe}\n")
             f.write(f"{nq_list}\n")
             f.write(f"{tpq_list}\n")
-
-
-    ''' PLOT: average distance vs input vector count '''
-    for nlist, nprobe in zip(nlist_list, nprobe_list):
-        avg_distances_list = avg_distances_dict[f"{nlist} / {nprobe}"]
-        plt.plot(nq_list, avg_distances_list, label=f"{nlist} / {nprobe}", marker='o')
-        for x, y in zip(nq_list, avg_distances_list):
-            plt.text(x, y, f"{y:.2f}")
-    plt.xlabel('nq')
-    plt.ylabel('avg distance')
-    plt.title(f'avg distance vs nq for {index_type}')
-    plt.legend()
-    plt.savefig(f"plots/avg_distance_vs_nq-{index_type}.png")
-    plt.show()
-    # save data to plotdata file
-    with open(f"plotdata/efficiency/avg_distance_vs_nq-{index_type}.txt", "w") as f:
-        for nlist, nprobe in zip(nlist_list, nprobe_list):
-            # write each plots x and y in an array
-            avg_distances_list = avg_distances_dict[f"{nlist} / {nprobe}"]
-            f.write(f"{nlist} / {nprobe}\n")
-            f.write(f"{nq_list}\n")
-            f.write(f"{avg_distances_list}\n")
 
     ''' PLOT: time per query vs topk for different nlist / nprobe (each nq a new plot)'''
     # fig, axs = plt.subplots(nrows=1, ncols=len(nq_list), figsize= (20, 8))
