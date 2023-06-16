@@ -6,8 +6,8 @@ import os
 
 class EmbeddingHandler():
 
-    embeddings_cache_file = 'Milvus/embeddings_cache.pkl'
-    test_embeddings_cache_file = 'Milvus/test_embeddings_cache.pkl'
+    embeddings_cache_file = 'Milvus/Base/embeddings_cache.pkl'
+    test_embeddings_cache_file = 'Milvus/Base/test_embeddings_cache.pkl'
 
     def __init__(self, entity_count: int=None, test_count: int=None):
 

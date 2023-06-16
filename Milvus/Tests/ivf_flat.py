@@ -1,8 +1,7 @@
 ''' import base '''
-from base import MilvusHandler
-from embedding import EmbeddingHandler
+from Base.base import MilvusHandler
+from Base.embedding import EmbeddingHandler
 import os
-
 import matplotlib.pyplot as plt
 
 '''
@@ -10,6 +9,7 @@ Test different Indexing Algorithms for different input vector counts
 '''
 # INDEX_TYPES = ["FLAT", "IVF_FLAT", "IVF_SQ8", "IVF_PQ", "HNSW", "ANNOY"]
 INDEX_TYPES = ["IVF_FLAT"]
+INDEX_TYPE = "IVF_FLAT"
 
 def test_recall(embedding_handler: EmbeddingHandler):
     ''' PLOT: recall rate vs nlist/nprobe-pairs '''
@@ -74,7 +74,7 @@ def test_recall(embedding_handler: EmbeddingHandler):
 
 
 
-def test_ivf_flat(embedding_handler: EmbeddingHandler):
+def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
     index_type = "IVF_FLAT"
     ''' nq is the number of input vectors '''
 
@@ -107,14 +107,14 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
             avg_distances_list.append(avg_distances)
 
             ''' test different topk's '''
-            little_list = []
-            for topk in topk_list:
-                qps, tpq, avg_distances = client.test_search(nq=nq, topk=topk)
-                # tpq_topk_list[f"{nq}"] = tpq
-                little_list.append(tpq)
-            if f"nq={nq}" not in tpq_topk_list_dict:
-                tpq_topk_list_dict[f"nq={nq}"] = {}
-            tpq_topk_list_dict[f"nq={nq}"][f"{nlist} / {nprobe}"] = little_list
+            # little_list = []
+            # for topk in topk_list:
+            #     qps, tpq, avg_distances = client.test_search(nq=nq, topk=topk)
+            #     # tpq_topk_list[f"{nq}"] = tpq
+            #     little_list.append(tpq)
+            # if f"nq={nq}" not in tpq_topk_list_dict:
+            #     tpq_topk_list_dict[f"nq={nq}"] = {}
+            # tpq_topk_list_dict[f"nq={nq}"][f"{nlist} / {nprobe}"] = little_list
 
         tpq_list_dict[f"{nlist} / {nprobe}"] = tpq_list
         avg_distances_dict[f"{nlist} / {nprobe}"] = avg_distances_list
@@ -167,32 +167,32 @@ def test_ivf_flat(embedding_handler: EmbeddingHandler):
             f.write(f"{avg_distances_list}\n")
 
     ''' PLOT: time per query vs topk for different nlist / nprobe (each nq a new plot)'''
-    fig, axs = plt.subplots(nrows=1, ncols=len(nq_list), figsize= (20, 8))
-    fig.subplots_adjust(wspace=0.5)
+    # fig, axs = plt.subplots(nrows=1, ncols=len(nq_list), figsize= (20, 8))
+    # fig.subplots_adjust(wspace=0.5)
 
-    for i, nq in enumerate(nq_list):
-        for nlist, nprobe in zip(nlist_list, nprobe_list):
-            tpq_topk_list = tpq_topk_list_dict[f"nq={nq}"]
-            tpq_list = tpq_topk_list[f"{nlist} / {nprobe}"]
-            axs[i].plot(topk_list, tpq_list, label=f"{nlist} / {nprobe}", marker='o')
-            for x, y in zip(topk_list, tpq_list):
-                label = "{:.2f}".format(y * 1000)
-                axs[i].annotate(label,
-                                (x,y),
-                                textcoords="offset points",
-                                xytext=(0,10),
-                                ha='center')
-        axs[i].set(xlabel='topk', ylabel='tpq / s')
-        axs[i].set_title(f'TPQ vs topk for {index_type} with nq: {nq} input vectors')
-        axs[i].legend()
-    plt.savefig(f"plots/tpq_vs_topk-{index_type}.png")
-    plt.show()
-    # save data to plotdata file
-    with open(f"plotdata/efficiency/tpq_vs_topk-{index_type}.txt", "w") as f:
-        for i, nq in enumerate(nq_list):
-            for nlist, nprobe in zip(nlist_list, nprobe_list):
-                tpq_topk_list = tpq_topk_list_dict[f"nq={nq}"]
-                tpq_list = tpq_topk_list[f"{nlist} / {nprobe}"]
-                f.write(f"{nlist} / {nprobe}\n")
-                f.write(f"{topk_list}\n")
-                f.write(f"{tpq_list}\n")
+    # for i, nq in enumerate(nq_list):
+    #     for nlist, nprobe in zip(nlist_list, nprobe_list):
+    #         tpq_topk_list = tpq_topk_list_dict[f"nq={nq}"]
+    #         tpq_list = tpq_topk_list[f"{nlist} / {nprobe}"]
+    #         axs[i].plot(topk_list, tpq_list, label=f"{nlist} / {nprobe}", marker='o')
+    #         for x, y in zip(topk_list, tpq_list):
+    #             label = "{:.2f}".format(y * 1000)
+    #             axs[i].annotate(label,
+    #                             (x,y),
+    #                             textcoords="offset points",
+    #                             xytext=(0,10),
+    #                             ha='center')
+    #     axs[i].set(xlabel='topk', ylabel='tpq / s')
+    #     axs[i].set_title(f'TPQ vs topk for {index_type} with nq: {nq} input vectors')
+    #     axs[i].legend()
+    # plt.savefig(f"plots/tpq_vs_topk-{index_type}.png")
+    # plt.show()
+    # # save data to plotdata file
+    # with open(f"plotdata/efficiency/tpq_vs_topk-{index_type}.txt", "w") as f:
+    #     for i, nq in enumerate(nq_list):
+    #         for nlist, nprobe in zip(nlist_list, nprobe_list):
+    #             tpq_topk_list = tpq_topk_list_dict[f"nq={nq}"]
+    #             tpq_list = tpq_topk_list[f"{nlist} / {nprobe}"]
+    #             f.write(f"{nlist} / {nprobe}\n")
+    #             f.write(f"{topk_list}\n")
+    #             f.write(f"{tpq_list}\n")

@@ -6,7 +6,7 @@ from datasets import Image as DatasetImage
 from PIL import Image
 import time
 from functools import lru_cache
-from embedding import EmbeddingHandler
+from Base.embedding import EmbeddingHandler
 import psutil
 import os
 
