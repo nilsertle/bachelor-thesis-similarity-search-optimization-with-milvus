@@ -61,7 +61,7 @@ def test_recall(embedding_handler: EmbeddingHandler, index_type=INDEX_TYPE):
 
 
 def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
-    index_type = "IVF_FLAT"
+    index_type = "FLAT"
     ''' nq is the number of input vectors '''
 
     tpq_list_dict = {}

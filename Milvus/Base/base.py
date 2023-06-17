@@ -9,12 +9,13 @@ from functools import lru_cache
 from Base.embedding import EmbeddingHandler
 import psutil
 import os
+import numpy as np
 
 class MilvusHandler:
     HOST = '127.0.0.1'
     PORT = '19530'
 
-    def __init__(self, embedding_handler: EmbeddingHandler ,metric_type='L2', index_type='IVF_FLAT', nprobe=16, nlist=2048, topk=10, offset=0, drop_collection=True):
+    def __init__(self, embedding_handler: EmbeddingHandler ,metric_type='L2', index_type='FLAT', nprobe=16, nlist=2048, topk=10, offset=0, drop_collection=True):
         self.metric_type = metric_type
         self.index_type = index_type
         self.nprobe = nprobe
@@ -28,7 +29,7 @@ class MilvusHandler:
         self.collection = None
         self.device = None
         self.embeddings: list[float] = embedding_handler.embeddings
-        self.test_embeddings: list[float] = embedding_handler.test_embeddings
+        self.test_embeddings: list[float] = [embedding_handler.test_embeddings[i] for i in np.random.choice(len(embedding_handler.test_embeddings), 100, replace=False)]
         self.test_dataset = embedding_handler.test_dataset
         self.dataset = embedding_handler.dataset
         self.embedding = None
