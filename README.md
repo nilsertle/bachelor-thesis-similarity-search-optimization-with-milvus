@@ -21,3 +21,7 @@ Test embeddings:
 
 # Check available memory
 `df -hT`
+
+Delete volume
+`docker-compose down`
+`sudo rm -rf volumes`

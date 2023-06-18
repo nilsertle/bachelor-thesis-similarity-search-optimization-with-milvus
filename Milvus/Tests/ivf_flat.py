@@ -61,12 +61,14 @@ def test_recall(embedding_handler: EmbeddingHandler, index_type=INDEX_TYPE):
 
 
 def test_accuracy_and_memory(embedding_handler: EmbeddingHandler):
-    index_type = "FLAT"
+    index_type = "IVF_SQ8"
     ''' nq is the number of input vectors '''
 
     tpq_list_dict = {}
-    nlist_list = [256, 1024, 4096, 16384]
-    nprobe_list = [8, 32, 128, 512]
+    # nlist_list = [256, 1024, 4096, 16384]
+    # nprobe_list = [8, 32, 128, 512]
+    nlist_list = [16384]
+    nprobe_list = [512]
     tpq_topk_list_dict: dict[str, dict[str, list[float]]] = {}
     nq_list = [1, 10, 100, 300, 500, 700, 900]
     topk_list = [1, 5, 10, 20, 50, 100]

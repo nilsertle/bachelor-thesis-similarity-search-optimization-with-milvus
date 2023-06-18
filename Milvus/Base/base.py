@@ -15,7 +15,9 @@ class MilvusHandler:
     HOST = '127.0.0.1'
     PORT = '19530'
 
-    def __init__(self, embedding_handler: EmbeddingHandler ,metric_type='L2', index_type='FLAT', nprobe=16, nlist=2048, topk=10, offset=0, drop_collection=True):
+    # TODO !!!!!!!!!!!!!!! its not actually changing index nor nlist nprobe pairs (for each nlist/nprobe pair and each index type, delete docker volume)
+
+    def __init__(self, embedding_handler: EmbeddingHandler ,metric_type='L2', index_type='IVF_SQ8', nprobe=16, nlist=2048, topk=10, offset=0, drop_collection=True):
         self.metric_type = metric_type
         self.index_type = index_type
         self.nprobe = nprobe
@@ -41,7 +43,7 @@ class MilvusHandler:
 
         
     def create_milvus_collection(self):
-        if utility.has_collection(self.collection_name) or self.drop_collection:
+        if not utility.has_collection(self.collection_name) or self.drop_collection:
             print(f'Collection {self.collection_name} already exists. Dropping it...')
             utility.drop_collection(self.collection_name)
 
@@ -180,10 +182,12 @@ class MilvusHandler:
 
         test_search_results = []
         print(f'========== Searching data... {self.nlist} / {nprobe} ==========')
+        print("has index? ", self.collection.has_index())
+        print(f"has IVF_FLAT? {self.collection.index()}", self.collection.has_index(index_name="IVF_FLAT"))
+        print(f"has IVF_FLAT? {self.collection.index().field_name} {self.collection.indexes} {self.collection.index().params}")
+
         start_time = time.time()
         for i, te in enumerate(self.test_embeddings):
-            if i in [10, 100, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 9999]:
-                print(f'========== Searching data... {i} ==========')
             test_search_result = self.search_data([te for x in range(nq)])
             test_search_results.append(test_search_result)
         end_time = time.time()
